@@ -133,7 +133,7 @@ host.onMounted(() => {
                 label="Save Changes"
                 color="primary"
                 variant="solid"
-                :disabled="!draftFiles.list().value.length"
+                :disabled="!draftFiles.list.value.length"
                 @click="ui.commitPreviewVisibility = true"
               />
             </template>

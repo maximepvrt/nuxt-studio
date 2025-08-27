@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import type { StorageValue, Storage } from 'unstorage'
 import type { DatabaseItem, DraftFileItem } from '../types'
 import type { useHost } from './useHost'
@@ -152,17 +152,13 @@ export function useDraftFiles(host: ReturnType<typeof useHost>, git: ReturnType<
     return list
   }
 
-  function list() {
-    return draftFiles
-  }
-
   return {
     get,
     upsert,
     remove,
     revert,
     revertAll,
-    list,
+    list: draftFiles as Ref<Readonly<DraftFileItem[]>>,
     load,
   }
 }

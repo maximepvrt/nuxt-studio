@@ -29,7 +29,7 @@ export function usePreview() {
 
   host.onMounted(async () => {
     await draftFiles.load()
-    await Promise.all(draftFiles.list().value.map(async (draft) => {
+    await Promise.all(draftFiles.list.value.map(async (draft) => {
       if (draft.status === 'deleted') {
         const { collection } = getCollectionInfo(draft.id, host.content.collections)
         await host.databaseAdapter(collection.name).exec(generateRecordDeletion(collection, draft.id))
@@ -44,7 +44,7 @@ export function usePreview() {
   host.onBeforeUnload((event: BeforeUnloadEvent) => {
     // Ignore on development to prevent annoying dialogs
     if (import.meta.dev) return
-    if (!draftFiles.list().value.length) return
+    if (!draftFiles.list.value.length) return
 
     // Recommended
     event.preventDefault()

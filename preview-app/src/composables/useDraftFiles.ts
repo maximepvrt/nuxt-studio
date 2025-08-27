@@ -153,7 +153,7 @@ export function useDraftFiles(host: ReturnType<typeof useHost>, git: ReturnType<
   }
 
   function list() {
-    return draftFiles.value
+    return draftFiles
   }
 
   return {

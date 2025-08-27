@@ -1,11 +1,11 @@
 import { createStorage } from 'unstorage'
 import indexedDbDriver from 'unstorage/drivers/indexedb'
-import type { DatabaseItem } from '../types'
 import { getCollectionInfo, generateRecordDeletion } from '../utils/collections'
 import { applyDraftToDatabase } from '../utils/database'
 import { useHost } from './useHost'
 import { useGit } from './useGit'
 import { useDraftFiles } from './useDraftFiles'
+import { useDbFiles } from './useDbFiles'
 
 const storage = createStorage({
   driver: indexedDbDriver({
@@ -25,10 +25,11 @@ export function usePreview() {
   })
 
   const draftFiles = useDraftFiles(host, git, storage)
+  const dbFiles = useDbFiles(host)
 
   host.onMounted(async () => {
     await draftFiles.load()
-    await Promise.all(draftFiles.list().map(async (draft) => {
+    await Promise.all(draftFiles.list().value.map(async (draft) => {
       if (draft.status === 'deleted') {
         const { collection } = getCollectionInfo(draft.id, host.content.collections)
         await host.databaseAdapter(collection.name).exec(generateRecordDeletion(collection, draft.id))
@@ -43,7 +44,7 @@ export function usePreview() {
   host.onBeforeUnload((event: BeforeUnloadEvent) => {
     // Ignore on development to prevent annoying dialogs
     if (import.meta.dev) return
-    if (!draftFiles.list().length) return
+    if (!draftFiles.list().value.length) return
 
     // Recommended
     event.preventDefault()
@@ -62,6 +63,7 @@ export function usePreview() {
     host,
     git,
     draftFiles,
+    dbFiles,
     // draftMedia: {
     //   get -> DraftMediaItem
     //   upsert
@@ -71,16 +73,6 @@ export function usePreview() {
     //   list -> DraftMediaItem[]
     //   revertAll
     // }
-    file: {
-      list: async () => {
-        const collections = Object.keys(host.content.collections).filter(c => c !== 'info')
-        const contents = await Promise.all(collections.map(async (collection) => {
-          const docs = await host.content.queryCollection(collection).all() as DatabaseItem[]
-          return docs
-        }))
-        return contents.flat()
-      },
-    },
     // media: {
     //   list -> MediaItem[]
     // }

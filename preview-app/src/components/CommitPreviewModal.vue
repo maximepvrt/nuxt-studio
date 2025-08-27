@@ -21,7 +21,7 @@ const filesToReview = ref<DraftFileItem[]>([])
 
 async function prepareReview() {
   loading.value = true
-  filesToReview.value = await Promise.all(preview.draftFiles.list().map(async ({ id }) => {
+  filesToReview.value = await Promise.all(preview.draftFiles.list().value.map(async ({ id }) => {
     const draft = await preview.draftFiles.get(id, { generateContent: true })
     return {
       ...draft,

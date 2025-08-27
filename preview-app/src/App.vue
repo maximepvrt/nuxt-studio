@@ -43,7 +43,7 @@ const isLeftSidebarOpen = computed(() => {
   return ui.editorVisibility
 })
 const ongoingDrafts = computed(() => {
-  return draftFiles.list().map((draft) => {
+  return draftFiles.list().value.map((draft) => {
     return {
       id: draft.id,
       label: draft.id,
@@ -150,7 +150,7 @@ host.onMounted(() => {
                   />
                 </UDropdownMenu>
                 <UDropdownMenu
-                  v-if="draftFiles.list().length"
+                  v-if="draftFiles.list().value.length"
                   :portal="false"
                   :items="ongoingDrafts"
                   placeholder="Select a content"
@@ -160,7 +160,7 @@ host.onMounted(() => {
                     color="neutral"
                     variant="solid"
                   >
-                    {{ draftFiles.list().length ? `Drafts (${draftFiles.list().length})` : 'No Drafts' }}
+                    {{ draftFiles.list().value.length ? `Drafts (${draftFiles.list().value.length})` : 'No Drafts' }}
                   </UButton>
                 </UDropdownMenu>
               </div>
@@ -169,7 +169,7 @@ host.onMounted(() => {
                 label="Save Changes"
                 color="primary"
                 variant="solid"
-                :disabled="!draftFiles.list().length"
+                :disabled="!draftFiles.list().value.length"
                 @click="ui.commitPreviewVisibility = true"
               />
             </div>

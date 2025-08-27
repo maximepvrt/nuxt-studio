@@ -4,7 +4,7 @@ import PreviewEditor from './components/PreviewEditor.vue'
 import ContentsListModal from './components/ContentsListModal.vue'
 import { usePreview } from './composables/usePreview'
 
-const { host, draftFile, draftFiles } = usePreview()
+const { host, draftFiles } = usePreview()
 
 const activeContents = ref<{ id: string, label: string, value: string }[]>([])
 
@@ -43,7 +43,7 @@ const isLeftSidebarOpen = computed(() => {
   return ui.editorVisibility
 })
 const ongoingDrafts = computed(() => {
-  return draftFiles.value.map((draft) => {
+  return draftFiles.list().map((draft) => {
     return {
       id: draft.id,
       label: draft.id,
@@ -70,10 +70,10 @@ async function onContentSelect(id: string) {
   ui.editorVisibility = true
 }
 function onEditorUpdate(content: any) {
-  draftFile.upsert(selectedContentId.value!, content)
+  draftFiles.upsert(selectedContentId.value!, content)
 }
 function onRevert() {
-  draftFile.revert(selectedContentId.value!)
+  draftFiles.revert(selectedContentId.value!)
 }
 
 function detectRenderedContents() {
@@ -98,7 +98,6 @@ host.onMounted(() => {
     }, 100)
   })
 })
-
 </script>
 
 <template>
@@ -109,7 +108,8 @@ host.onMounted(() => {
         class="dark"
       >
         <div>
-          <div ref="toolbarWrapper"
+          <div
+            ref="toolbarWrapper"
             class="toolbar-wrapper"
             style=" transition: all 0.3s ease; height: 60px;"
           >
@@ -150,7 +150,7 @@ host.onMounted(() => {
                   />
                 </UDropdownMenu>
                 <UDropdownMenu
-                  v-if="draftFiles.length"
+                  v-if="draftFiles.list().length"
                   :portal="false"
                   :items="ongoingDrafts"
                   placeholder="Select a content"
@@ -160,7 +160,7 @@ host.onMounted(() => {
                     color="neutral"
                     variant="solid"
                   >
-                    {{ draftFiles.length ? `Drafts (${draftFiles.length})` : 'No Drafts' }}
+                    {{ draftFiles.list().length ? `Drafts (${draftFiles.list().length})` : 'No Drafts' }}
                   </UButton>
                 </UDropdownMenu>
               </div>
@@ -169,7 +169,7 @@ host.onMounted(() => {
                 label="Save Changes"
                 color="primary"
                 variant="solid"
-                :disabled="!draftFiles.length"
+                :disabled="!draftFiles.list().length"
                 @click="ui.commitPreviewVisibility = true"
               />
             </div>

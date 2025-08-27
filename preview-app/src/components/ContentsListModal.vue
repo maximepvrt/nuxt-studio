@@ -22,7 +22,7 @@ const selectedContent = ref<any>()
 async function loadContents() {
   loading.value = true
   try {
-    contents.value = await preview.draftFile.list()
+    contents.value = await preview.draftFiles.list()
   }
   finally {
     loading.value = false
@@ -38,7 +38,7 @@ watch(modelValue, (open) => {
 })
 
 watch(content, async (value) => {
-  preview.draftFile.upsert(selectedContent.value.id, {
+  preview.draftFiles.upsert(selectedContent.value.id, {
     ...toRaw(value),
     id: selectedContent.value.id,
     extension: selectedContent.value.extension,

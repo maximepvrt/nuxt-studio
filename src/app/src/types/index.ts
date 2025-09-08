@@ -4,6 +4,7 @@ import type { DatabaseItem } from './database'
 export * from './draft'
 export * from './database'
 export * from './user'
+
 export interface StudioHost {
   on: {
     routeChange: (fn: () => void) => void
@@ -33,9 +34,11 @@ export interface StudioHost {
   requestRerender: () => void
 }
 
+export type UseStudioHost = (user: StudioUser) => StudioHost
+
 declare global {
   interface Window {
-    useStudioHost: () => StudioHost
+    useStudioHost: UseStudioHost
   }
 }
 

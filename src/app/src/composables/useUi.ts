@@ -4,8 +4,8 @@ import type { StudioHost } from '../types'
 
 export const useUi = createSharedComposable((host: StudioHost) => {
   const panels = reactive({
-    files: false,
-    medias: false,
+    content: true,
+    media: true,
     config: false,
   })
 

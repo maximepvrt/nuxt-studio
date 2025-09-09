@@ -3,8 +3,8 @@
 // import PreviewEditor from './components/PreviewEditor.vue'
 // import ContentsListModal from './components/ContentsListModal.vue'
 import { useStudio } from './composables/useStudio'
-import PanelFiles from './components/panel/PanelFiles.vue'
-import PanelMedias from './components/panel/PanelMedias.vue'
+import PanelContent from './components/panel/content/PanelContent.vue'
+import PanelMedia from './components/panel/PanelMedia.vue'
 import PanelConfig from './components/panel/PanelConfig.vue'
 // import CommitPreviewModal from './components/CommitPreviewModal.vue'
 
@@ -23,11 +23,11 @@ const { ui: { isPanelOpen, panels } } = useStudio()
 //     )
 //   }
 
-//   if (draftFiles.list.value.length > 0) {
+//   if (draft.list.value.length > 0) {
 //     items.push([
 //       {
-//         label: `Drafts (${draftFiles.list.value.length})`,
-//         children: draftFiles.list.value.map((draft) => {
+//         label: `Drafts (${draft.list.value.length})`,
+//         children: draft.list.value.map((draft) => {
 //           return {
 //             label: draft.id,
 //             value: draft.id,
@@ -58,10 +58,10 @@ const { ui: { isPanelOpen, panels } } = useStudio()
 // }
 
 // function onEditorUpdate(content: any) {
-//   draftFiles.upsert(selectedContentId.value!, content)
+//   draft.upsert(selectedContentId.value!, content)
 // }
 // function onRevert() {
-//   draftFiles.revert(selectedContentId.value!)
+//   draft.revert(selectedContentId.value!)
 // }
 
 // function detectActiveDocuments() {
@@ -91,8 +91,8 @@ const { ui: { isPanelOpen, panels } } = useStudio()
   <Suspense>
     <UApp :toaster="{ portal: false }">
       <PanelBase v-model="isPanelOpen">
-        <PanelFiles v-if="panels.files" />
-        <PanelMedias v-else-if="panels.medias" />
+        <PanelContent v-if="panels.content" />
+        <PanelMedia v-else-if="panels.media" />
         <PanelConfig v-else-if="panels.config" />
       </PanelBase>
 
@@ -103,7 +103,7 @@ const { ui: { isPanelOpen, panels } } = useStudio()
         size="lg"
         color="primary"
         class="fixed bottom-4 left-4 z-50 shadow-lg"
-        @click="panels.files = true"
+        @click="panels.content = true"
       />
 
       <!-- <PreviewEditor

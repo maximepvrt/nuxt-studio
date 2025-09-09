@@ -2,7 +2,8 @@ import { createStorage } from 'unstorage'
 import indexedDbDriver from 'unstorage/drivers/indexedb'
 import { useGit } from './useGit'
 import { useUi } from './useUi'
-import { useDraftFiles } from './useDraftFiles'
+import { useContext } from './useContext'
+import { useDraft } from './useDraft'
 
 const storage = createStorage({
   driver: indexedDbDriver({
@@ -22,25 +23,18 @@ export const useStudio = () => {
   })
 
   const ui = useUi(host)
-  const draftFiles = useDraftFiles(host, git, storage)
+  const context = useContext(host)
+  const draft = useDraft(host, git, storage)
 
   host.on.mounted(async () => {
-    await draftFiles.load()
-    await Promise.all(draftFiles.list.value.map(async (draft) => {
-      if (draft.status === 'deleted') {
-        await host.document.delete(draft.id)
-      }
-      else {
-        await host.document.upsert(draft.id, draft.document!)
-      }
-    }))
+    await draft.load()
     host.requestRerender()
   })
 
   // host.on.beforeUnload((event: BeforeUnloadEvent) => {
   //   // Ignore on development to prevent annoying dialogs
   //   if (import.meta.dev) return
-  //   if (!draftFiles.list.value.length) return
+  //   if (!draft.list.value.length) return
 
   //   // Recommended
   //   event.preventDefault()
@@ -55,11 +49,12 @@ export const useStudio = () => {
   //   return 'Sure?'
   // })
 
-  const returnValue = {
+  return {
     host,
     git,
     ui,
-    draftFiles,
+    context,
+    draft,
     // draftMedia: {
     //   get -> DraftMediaItem
     //   upsert
@@ -78,6 +73,4 @@ export const useStudio = () => {
     //   revert
     // }
   }
-
-  return returnValue
 }

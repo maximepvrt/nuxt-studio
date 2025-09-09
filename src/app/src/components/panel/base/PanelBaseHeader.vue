@@ -4,16 +4,16 @@ import { useStudio } from '../../../composables/useStudio'
 const studio = useStudio()
 
 const features = [{
-  label: 'Files',
+  label: 'Content',
   icon: 'i-lucide-files',
   onClick: () => {
-    studio.ui.openPanel('files')
+    studio.ui.openPanel('content')
   },
 }, {
-  label: 'Medias',
+  label: 'Media',
   icon: 'i-lucide-image',
   onClick: () => {
-    studio.ui.openPanel('medias')
+    studio.ui.openPanel('media')
   },
 },
 {

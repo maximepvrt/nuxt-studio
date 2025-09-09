@@ -1,0 +1,172 @@
+import { ref, type Ref } from 'vue'
+import type { StorageValue, Storage } from 'unstorage'
+import type { DatabaseItem, DraftFileItem, StudioHost, TreeItem } from '../types'
+import type { useGit } from './useGit'
+import { generateMarkdown } from '../utils/content'
+import { buildTree } from '../utils/draft'
+
+export function useDraft(host: StudioHost, git: ReturnType<typeof useGit>, storage: Storage<StorageValue>) {
+  const draft = ref<DraftFileItem[]>([])
+  const tree = ref<TreeItem[]>([])
+
+  async function get(id: string, { generateContent = false }: { generateContent?: boolean } = {}) {
+    const item = await storage.getItem(id) as DraftFileItem
+    if (generateContent) {
+      return {
+        ...item,
+        content: await generateMarkdown(item.document!) || '',
+      }
+    }
+    return item
+  }
+
+  async function upsert(id: string, document: DatabaseItem) {
+    id = id.replace(/:/g, '/')
+    let item = await storage.getItem(id) as DraftFileItem
+    if (!item) {
+      const path = host.document.getFileSystemPath(id)
+
+      // Fetch github file before creating draft to detect non deployed changes before publishing
+      const originalGithubFile = await git.fetchFile(path, { cached: true })
+      const originalDatabaseItem = await host.document.get(id)
+
+      item = {
+        id,
+        path,
+        originalDatabaseItem,
+        originalGithubFile,
+        status: originalGithubFile || originalDatabaseItem ? 'updated' : 'created',
+        document,
+      }
+    }
+    else {
+      item.document = document
+    }
+
+    await storage.setItem(id, item)
+
+    const existingItem = draft.value.find(item => item.id == id)
+    if (existingItem) {
+      existingItem.document = document
+    }
+    else {
+      draft.value.push(item)
+    }
+
+    await host.document.upsert(id, item.document!)
+    refresh()
+  }
+
+  async function remove(id: string) {
+    const item = await storage.getItem(id) as DraftFileItem
+    const path = host.document.getFileSystemPath(id)
+
+    if (item) {
+      if (item.status === 'deleted') return
+
+      await storage.removeItem(id)
+      await host.document.delete(id)
+
+      if (item.originalDatabaseItem) {
+        const deleteDraft: DraftFileItem = {
+          id,
+          path: item.path,
+          status: 'deleted',
+          originalDatabaseItem: item.originalDatabaseItem,
+          originalGithubFile: item.originalGithubFile,
+        }
+
+        await storage.setItem(id, deleteDraft)
+        await host.document.upsert(id, item.originalDatabaseItem!)
+      }
+    }
+    else {
+      // Fetch github file before creating draft to detect non deployed changes
+      const originalGithubFile = await git.fetchFile(path, { cached: true })
+      const originalDatabaseItem = await host.document.get(id)
+
+      const deleteItem: DraftFileItem = {
+        id,
+        path,
+        status: 'deleted',
+        originalDatabaseItem,
+        originalGithubFile,
+      }
+
+      await storage.setItem(id, deleteItem)
+
+      await host.document.delete(id)
+    }
+
+    draft.value = draft.value.filter(item => item.id !== id)
+    refresh()
+  }
+
+  async function revert(id: string) {
+    const item = await storage.getItem(id) as DraftFileItem
+    if (!item) return
+
+    await storage.removeItem(id)
+
+    draft.value = draft.value.filter(item => item.id !== id)
+
+    if (item.originalDatabaseItem) {
+      await host.document.upsert(id, item.originalDatabaseItem)
+    }
+
+    if (item.status === 'created') {
+      await host.document.delete(id)
+    }
+    refresh()
+  }
+
+  async function revertAll() {
+    await storage.clear()
+    for (const item of draft.value) {
+      if (item.originalDatabaseItem) {
+        await host.document.upsert(item.id, item.originalDatabaseItem)
+      }
+      else if (item.status === 'created') {
+        await host.document.delete(item.id)
+      }
+    }
+    draft.value = []
+    refresh()
+  }
+
+  async function load() {
+    const list = await storage.getKeys().then((keys) => {
+      return Promise.all(keys.map(key => storage.getItem(key) as unknown as DraftFileItem))
+    })
+
+    draft.value = list
+
+    // Upsert/Delete draft files in database
+    await Promise.all(draft.value.map(async (draft) => {
+      if (draft.status === 'deleted') {
+        await host.document.delete(draft.id)
+      }
+      else {
+        await host.document.upsert(draft.id, draft.document!)
+      }
+    }))
+  }
+
+  async function refresh() {
+    // TODO: Optimize this
+    const dbItems = await host.document.list()
+    tree.value = buildTree(dbItems, draft.value)
+    host.requestRerender()
+  }
+
+  return {
+    get,
+    upsert,
+    remove,
+    revert,
+    revertAll,
+    list: draft as Ref<Readonly<DraftFileItem[]>>,
+    load,
+    tree,
+  }
+}

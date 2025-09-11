@@ -109,7 +109,7 @@ watch(sidebarWidth, () => {
 
       <!-- Floating Files Panel Toggle -->
       <UButton
-        v-if="!ui.isPanelOpen"
+        v-if="!ui.isPanelOpen.value"
         icon="i-lucide-panel-left-open"
         size="lg"
         color="primary"

@@ -5,7 +5,8 @@ import type { useGit } from './useGit'
 import { generateMarkdown } from '../utils/content'
 
 export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, storage: Storage<StorageValue>) {
-  const draftFiles = ref<DraftFileItem[]>([])
+  const list = ref<DraftFileItem[]>([])
+  const current = ref<DraftFileItem | null>(null)
 
   async function get(id: string, { generateContent = false }: { generateContent?: boolean } = {}) {
     const item = await storage.getItem(id) as DraftFileItem
@@ -18,13 +19,12 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
     return item
   }
 
-  async function upsert(id: string, document: DatabaseItem) {
+  async function upsert(id: string, document: DatabaseItem, isCurrent: boolean = false) {
     id = id.replace(/:/g, '/')
     let item = await storage.getItem(id) as DraftFileItem
     if (!item) {
       const path = host.document.getFileSystemPath(id)
 
-      // Fetch github file before creating draft to detect non deployed changes before publishing
       const originalGithubFile = await git.fetchFile(path, { cached: true })
       const originalDatabaseItem = await host.document.get(id)
 
@@ -43,16 +43,20 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
 
     await storage.setItem(id, item)
 
-    const existingItem = draftFiles.value.find(item => item.id == id)
+    const existingItem = list.value.find(item => item.id == id)
     if (existingItem) {
       existingItem.document = document
     }
     else {
-      draftFiles.value.push(item)
+      list.value.push(item)
     }
 
     await host.document.upsert(id, item.document!)
     host.requestRerender()
+
+    if (isCurrent) {
+      select(item)
+    }
   }
 
   async function remove(id: string) {
@@ -96,7 +100,7 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
       await host.document.delete(id)
     }
 
-    draftFiles.value = draftFiles.value.filter(item => item.id !== id)
+    list.value = list.value.filter(item => item.id !== id)
     host.requestRerender()
   }
 
@@ -106,7 +110,7 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
 
     await storage.removeItem(id)
 
-    draftFiles.value = draftFiles.value.filter(item => item.id !== id)
+    list.value = list.value.filter(item => item.id !== id)
 
     if (item.originalDatabaseItem) {
       await host.document.upsert(id, item.originalDatabaseItem)
@@ -120,7 +124,7 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
 
   async function revertAll() {
     await storage.clear()
-    for (const item of draftFiles.value) {
+    for (const item of list.value) {
       if (item.originalDatabaseItem) {
         await host.document.upsert(item.id, item.originalDatabaseItem)
       }
@@ -128,21 +132,21 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
         await host.document.delete(item.id)
       }
     }
-    draftFiles.value = []
+    list.value = []
     host.requestRerender()
   }
 
   async function load() {
-    const list = await storage.getKeys().then((keys) => {
+    const storedList = await storage.getKeys().then((keys) => {
       return Promise.all(keys.map(key => storage.getItem(key) as unknown as DraftFileItem))
     })
 
-    draftFiles.value = list
+    list.value = storedList
 
     // Upsert/Delete draft files in database
-    await Promise.all(draftFiles.value.map(async (draftFile) => {
-      if (draftFile.status === 'deleted') {
-        await host.document.delete(draftFile.id)
+    await Promise.all(list.value.map(async (draft) => {
+      if (draft.status === 'deleted') {
+        await host.document.delete(draft.id)
       }
       else {
         await host.document.upsert(draftFile.id, draftFile.document!)
@@ -152,13 +156,18 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
     host.requestRerender()
   }
 
+  function select(draftItem: DraftFileItem | null) {
+    current.value = draftItem
+  }
+
   return {
     get,
     upsert,
     remove,
     revert,
     revertAll,
-    list: draftFiles,
+    list,
     load,
+    current,
   }
 }

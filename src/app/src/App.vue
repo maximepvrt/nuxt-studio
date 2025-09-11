@@ -118,15 +118,15 @@ watch(sidebarWidth, () => {
       />
 
       <!-- <PreviewEditor
+            v-model="ui.editorVisibility"
+            :content="selectedContent"
+            :markdown="'selectedContent.markdown'"
+            @update:content="onEditorUpdate"
+            @revert="onRevert"
+          /> -->
+
+      <!-- <PreviewEditor
         v-model="studio.ui.displayEditor"
-      /> -->
-      <!-- <CommitPreviewModal
-        v-model="studio.ui.commitPreviewVisibility"
-      />
-      <ContentsListModal
-        v-model="studio.ui.contentsListVisibility"
-        @update:content="onEditorUpdate"
-        @select="onContentSelect"
       /> -->
     </UApp>
   </Suspense>

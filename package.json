@@ -48,6 +48,7 @@
   },
   "packageManager": "pnpm@10.15.0",
   "dependencies": {
-    "@nuxtlabs/monarch-mdc": "^0.8.1"
+    "@nuxtlabs/monarch-mdc": "^0.8.1",
+    "modern-monaco": "^0.1.9"
   }
 }

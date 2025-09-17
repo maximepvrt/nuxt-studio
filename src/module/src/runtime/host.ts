@@ -5,9 +5,9 @@ import type { ContentDatabaseAdapter } from '../types/content'
 import { createCollectionDocument, generateRecordDeletion, generateRecordInsert, getCollectionInfo } from './utils/collections'
 import { kebabCase } from 'lodash'
 import type { UseStudioHost, StudioHost, StudioUser, DatabaseItem } from 'nuxt-studio/app'
+import type { RouteLocationNormalized, Router } from 'vue-router'
 import { queryCollection, queryCollectionItemSurroundings, queryCollectionNavigation, queryCollectionSearchSections } from '#imports'
 import { collections } from '#content/preview'
-
 
 function getSidebarWidth(): number {
   let sidebarWidth = 440
@@ -82,10 +82,10 @@ export function useStudioHost(user: StudioUser): StudioHost {
 
   const host: StudioHost = {
     on: {
-      routeChange: (fn: () => void) => {
-        const router = useNuxtApp().$router as { afterEach?: (callback: () => void) => void }
-        router?.afterEach?.(() => {
-          fn()
+      routeChange: (fn: (to: RouteLocationNormalized, from: RouteLocationNormalized) => void) => {
+        const router = useNuxtApp().$router as Router
+        router?.afterEach?.((to, from) => {
+          fn(to, from)
         })
       },
       mounted: (fn: () => void) => ensure(() => isMounted.value, 400).then(fn),
@@ -188,8 +188,13 @@ export function useStudioHost(user: StudioUser): StudioHost {
       },
     },
 
-    requestRerender: () => {
-      useNuxtApp().hooks.callHookParallel('app:data:refresh')
+    app: {
+      requestRerender: () => {
+        useNuxtApp().hooks.callHookParallel('app:data:refresh')
+      },
+      navigateTo: (path: string) => {
+        useNuxtApp().$router.push(path)
+      },
     },
   }
 

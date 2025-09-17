@@ -1,15 +1,17 @@
 import type { StudioUser } from './user'
 import type { DatabaseItem } from './database'
+import type { RouteLocationNormalized } from 'vue-router'
 
 export * from './draft'
 export * from './database'
 export * from './user'
 export * from './tree'
 export * from './github'
+export * from './context'
 
 export interface StudioHost {
   on: {
-    routeChange: (fn: () => void) => void
+    routeChange: (fn: (to: RouteLocationNormalized, from: RouteLocationNormalized) => void) => void
     mounted: (fn: () => void) => void
     beforeUnload: (fn: (event: BeforeUnloadEvent) => void) => void
   }
@@ -33,7 +35,10 @@ export interface StudioHost {
   user: {
     get: () => StudioUser
   }
-  requestRerender: () => void
+  app: {
+    requestRerender: () => void
+    navigateTo: (path: string) => void
+  }
 }
 
 export type UseStudioHost = (user: StudioUser) => StudioHost

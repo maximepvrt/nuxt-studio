@@ -28,7 +28,7 @@ export default defineConfig({
         },
         header: {
           slots: {
-            container: 'px-1 sm:px-4 lg:px-4',
+            container: 'px-1 sm:px-3 lg:px-3',
           },
         },
         pageCard: {
@@ -38,6 +38,17 @@ export default defineConfig({
             body: 'p-3 sm:p-3 w-full',
           },
         },
+        navigationMenu: {
+          slots: {
+            link: 'cursor-pointer',
+          },
+        },
+        breadcrumb: {
+          slots: {
+            link: 'cursor-pointer',
+          },
+        },
+
       },
     }),
     libCss(),

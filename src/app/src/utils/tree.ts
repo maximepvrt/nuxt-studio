@@ -1,6 +1,7 @@
-import type { DatabaseItem, DraftFileItem, TreeItem } from '../types'
+import { DraftStatus, type DatabaseItem, type DraftFileItem, type TreeItem } from '../types'
 import { withLeadingSlash } from 'ufo'
 import { stripNumericPrefix } from './string'
+import type { RouteLocationNormalized } from 'vue-router'
 
 export function buildTree(items: DatabaseItem[], draftList: DraftFileItem[] | null):
 TreeItem[] {
@@ -35,7 +36,7 @@ TreeItem[] {
       // Page type
       if (item.path) {
         fileItem.fileType = 'page'
-        fileItem.pagePath = item.path as string
+        fileItem.routePath = item.path as string
       }
       // Data type
       else {
@@ -105,7 +106,7 @@ TreeItem[] {
 
     if (item.path) {
       fileItem.fileType = 'page'
-      fileItem.pagePath = item.path as string
+      fileItem.routePath = item.path as string
     }
     else {
       fileItem.fileType = 'data'
@@ -113,6 +114,8 @@ TreeItem[] {
 
     directoryChildren.push(fileItem)
   }
+
+  calculateDirectoryStatuses(tree)
 
   return tree
 }
@@ -137,29 +140,34 @@ export function findParentFromId(tree: TreeItem[], id: string): TreeItem | null 
   return null
 }
 
-// function _calculateDirectoryStatuses(items: TreeItem[]) {
-//   for (const item of items) {
-//     if (item.type === 'directory' && item.children) {
-//       // Recursively calculate children first
-//       _calculateDirectoryStatuses(item.children)
+export function findItemFromRoute(tree: TreeItem[], route: RouteLocationNormalized): TreeItem | null {
+  for (const item of tree) {
+    if (item.routePath === route.path) {
+      return item
+    }
 
-//       // Calculate this directory's status based on children
-//       const childStatuses = item.children
-//         .map(child => child.status)
-//         .filter(Boolean)
+    if (item.type === 'directory' && item.children) {
+      const foundInChildren = findItemFromRoute(item.children, route)
+      if (foundInChildren) {
+        return foundInChildren
+      }
+    }
+  }
 
-//       if (childStatuses.length > 0) {
-//         // Priority: deleted > created > updated
-//         if (childStatuses.includes(DraftStatus.Deleted)) {
-//           item.status = DraftStatus.Deleted
-//         }
-//         else if (childStatuses.includes(DraftStatus.Created)) {
-//           item.status = DraftStatus.Created
-//         }
-//         else if (childStatuses.includes(DraftStatus.Updated)) {
-//           item.status = DraftStatus.Updated
-//         }
-//       }
-//     }
-//   }
-// }
+  return null
+}
+
+function calculateDirectoryStatuses(items: TreeItem[]) {
+  for (const item of items) {
+    if (item.type === 'directory' && item.children) {
+      calculateDirectoryStatuses(item.children)
+
+      for (const child of item.children) {
+        if (child.status) {
+          item.status = DraftStatus.Updated
+          break
+        }
+      }
+    }
+  }
+}

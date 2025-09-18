@@ -8,6 +8,7 @@ import { joinURL } from 'ufo'
 import { contentFileExtensions } from '../../../utils/content'
 import { useStudio } from '../../../composables/useStudio'
 import { StudioItemActionId } from '../../../types'
+import { stripNumericPrefix } from '../../../utils/string'
 
 const { context } = useStudio()
 
@@ -46,8 +47,8 @@ const itemExtensionIcon = computed<string>(() => {
   }[state.extension as string] || 'i-mdi-file'
 })
 
-const path = computed(() => {
-  return joinURL(props.parentItem.path, state.name)
+const routePath = computed(() => {
+  return joinURL(props.parentItem.routePath!, stripNumericPrefix(state.name))
 })
 
 const tooltipText = computed(() => {
@@ -62,8 +63,13 @@ const tooltipText = computed(() => {
   }
 })
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log('submit', event)
+function onSubmit(_event: FormSubmitEvent<Schema>) {
+  const fsPath = joinURL(props.parentItem.fsPath, state.name)
+
+  context.itemActionHandler[props.actionId]({
+    fsPath,
+    content: 'yolo',
+  })
 }
 </script>
 
@@ -161,7 +167,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
             </div>
 
             <span class="truncate leading-relaxed text-xs text-gray-400 dark:text-gray-500 block w-full">
-              {{ path }}
+              {{ routePath }}
             </span>
           </div>
         </template>

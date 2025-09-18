@@ -3,16 +3,16 @@ import { withLeadingSlash } from 'ufo'
 import { stripNumericPrefix } from './string'
 import type { RouteLocationNormalized } from 'vue-router'
 
-export const ROOT_ITEM: TreeItem = { id: 'root', name: 'content', path: '/', type: 'root' }
+export const ROOT_ITEM: TreeItem = { id: 'root', name: 'content', fsPath: '/', type: 'root' }
 
-export function buildTree(items: DatabaseItem[], draftList: DraftFileItem[] | null):
+export function buildTree(dbItems: DatabaseItem[], draftList: DraftFileItem[] | null):
 TreeItem[] {
   const tree: TreeItem[] = []
   const directoryMap = new Map<string, TreeItem>()
 
-  for (const item of items) {
+  for (const dbItem of dbItems) {
     // Use stem to determine tree structure
-    const stemSegments = item.stem.split('/')
+    const stemSegments = dbItem.stem.split('/')
     const directorySegments = stemSegments.slice(0, -1)
     let fileName = stemSegments[stemSegments.length - 1]
 
@@ -21,24 +21,24 @@ TreeItem[] {
     ******************/
     if (directorySegments.length === 0) {
       fileName = fileName === 'index' ? 'home' : stripNumericPrefix(fileName)
-      const filePath = fileName === 'home' ? '/' : withLeadingSlash(stripNumericPrefix(fileName))
+      const fsPath = withLeadingSlash(`${dbItem.stem}.${dbItem.extension}`)
 
       const fileItem: TreeItem = {
-        id: item.id,
+        id: dbItem.id,
         name: fileName,
-        path: filePath,
+        fsPath,
         type: 'file',
       }
 
-      const draftFileItem = draftList?.find(draft => draft.id === item.id)
+      const draftFileItem = draftList?.find(draft => draft.id === dbItem.id)
       if (draftFileItem) {
         fileItem.status = draftFileItem.status
       }
 
       // Page type
-      if (item.path) {
+      if (dbItem.path) {
         fileItem.fileType = 'page'
-        fileItem.routePath = item.path as string
+        fileItem.routePath = dbItem.path as string
       }
       // Data type
       else {
@@ -53,33 +53,33 @@ TreeItem[] {
     Generate directory
     ******************/
     function dirIdBuilder(index: number) {
-      const idSegments = item.id.split('/')
+      const idSegments = dbItem.id.split('/')
       const stemVsIdGap = idSegments.length - stemSegments.length
       return idSegments.slice(0, index + stemVsIdGap + 1).join('/')
     }
 
-    function dirPathBuilder(index: number) {
-      return withLeadingSlash(directorySegments.slice(0, index + 1).map(seg => stripNumericPrefix(seg)).join('/'))
+    function dirFsPathBuilder(index: number) {
+      return withLeadingSlash(directorySegments.slice(0, index + 1).join('/'))
     }
 
     let directoryChildren = tree
     for (let i = 0; i < directorySegments.length; i++) {
       const dirName = stripNumericPrefix(directorySegments[i])
       const dirId = dirIdBuilder(i)
-      const dirPath = dirPathBuilder(i)
+      const dirFsPath = dirFsPathBuilder(i)
 
       // Only create directory if it doesn't exist
-      let directory = directoryMap.get(dirPath)
+      let directory = directoryMap.get(dirId)
       if (!directory) {
         directory = {
           id: dirId,
           name: dirName,
-          path: dirPath,
+          fsPath: dirFsPath,
           type: 'directory',
           children: [],
         }
 
-        directoryMap.set(dirPath, directory)
+        directoryMap.set(dirId, directory)
 
         if (!directoryChildren.find(child => child.id === dirId)) {
           directoryChildren.push(directory)
@@ -92,23 +92,21 @@ TreeItem[] {
     /****************************************
     Generate file in directory (last segment)
     ******************************************/
-    const filePath = withLeadingSlash(stemSegments.map(seg => stripNumericPrefix(seg)).join('/'))
-
     const fileItem: TreeItem = {
-      id: item.id,
+      id: dbItem.id,
       name: stripNumericPrefix(fileName),
-      path: filePath,
+      fsPath: withLeadingSlash(`${dbItem.stem}.${dbItem.extension}`),
       type: 'file',
     }
 
-    const draftFileItem = draftList?.find(draft => draft.id === item.id)
+    const draftFileItem = draftList?.find(draft => draft.id === dbItem.id)
     if (draftFileItem) {
       fileItem.status = draftFileItem.status
     }
 
-    if (item.path) {
+    if (dbItem.path) {
       fileItem.fileType = 'page'
-      fileItem.routePath = item.path as string
+      fileItem.routePath = dbItem.path as string
     }
     else {
       fileItem.fileType = 'data'

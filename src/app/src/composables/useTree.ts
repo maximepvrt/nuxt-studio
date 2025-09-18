@@ -1,7 +1,7 @@
 import type { StudioHost, TreeItem } from '../types'
 import { ref, watch, computed } from 'vue'
 import type { useDraftFiles } from './useDraftFiles'
-import { findParentFromId, buildTree, findItemFromRoute, ROOT_ITEM } from '../utils/tree'
+import { buildTree, findItemFromRoute, ROOT_ITEM } from '../utils/tree'
 import type { RouteLocationNormalized } from 'vue-router'
 
 export function useTree(host: StudioHost, draftFiles: ReturnType<typeof useDraftFiles>) {
@@ -14,10 +14,10 @@ export function useTree(host: StudioHost, draftFiles: ReturnType<typeof useDraft
     }
 
     let subTree = tree.value
-    const parts = currentItem.value.path.split('/').filter(Boolean)
-    for (let i = 0; i < parts.length; i++) {
-      const fileName = parts[i]
-      const file = subTree.find(f => f.name === fileName) as TreeItem
+    const idSegments = currentItem.value.id.split('/').filter(Boolean)
+    for (let i = 0; i < idSegments.length; i++) {
+      const id = idSegments.slice(0, i + 1).join('/')
+      const file = subTree.find(item => item.id === id) as TreeItem
       if (file) {
         subTree = file.children!
       }
@@ -59,6 +59,7 @@ export function useTree(host: StudioHost, draftFiles: ReturnType<typeof useDraft
 
   watch(draftFiles.list, async () => {
     const list = await host.document.list()
+    console.log('list', list)
     tree.value = buildTree(list, draftFiles.list.value)
   }, { deep: true })
 

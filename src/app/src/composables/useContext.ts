@@ -6,7 +6,10 @@ import { STUDIO_ITEM_ACTION_DEFINITIONS } from '../utils/context'
 import type { useDraftFiles } from './useDraftFiles'
 
 export const useContext = createSharedComposable((
-  _host: StudioHost, ui: ReturnType<typeof useUi>, _draftFiles: ReturnType<typeof useDraftFiles>) => {
+  _host: StudioHost,
+  ui: ReturnType<typeof useUi>,
+  draftFiles: ReturnType<typeof useDraftFiles>,
+) => {
   const actionInProgress = ref<StudioItemActionId>()
   const currentFeature = computed<keyof typeof ui.panels | null>(() =>
     Object.keys(ui.panels).find(key => ui.panels[key as keyof typeof ui.panels]) as keyof typeof ui.panels,
@@ -35,8 +38,10 @@ export const useContext = createSharedComposable((
       console.log('create folder', id)
       alert(`create folder ${id}`)
     },
-    [StudioItemActionId.CreateFile]: async ({ id, content }: { id: string, content?: string }) => {
-      alert(`create file ${id} ${content}`)
+    [StudioItemActionId.CreateFile]: async ({ fsPath, content }: { fsPath: string, content?: string }) => {
+      await draftFiles.create(fsPath, content!)
+
+      alert(`created file ${fsPath} ${content} !`)
     },
     [StudioItemActionId.RevertItem]: async (id: string) => {
       alert(`revert file ${id}`)
@@ -63,5 +68,6 @@ export const useContext = createSharedComposable((
     actionInProgress,
 
     unsetActionInProgress,
+    itemActionHandler,
   }
 })

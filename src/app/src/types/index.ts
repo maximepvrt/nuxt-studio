@@ -30,6 +30,7 @@ export interface StudioHost {
     getFileSystemPath: (id: string) => string
     list: () => Promise<DatabaseItem[]>
     upsert: (id: string, upsertedDocument: DatabaseItem) => Promise<void>
+    create: (path: string, content: string) => Promise<DatabaseItem>
     delete: (id: string) => Promise<void>
     detectActives: () => Array<{ id: string, title: string }>
   }

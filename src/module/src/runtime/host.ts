@@ -2,10 +2,11 @@ import { ref } from 'vue'
 import { ensure } from './utils/ensure'
 import type { CollectionItemBase, DatabaseAdapter } from '@nuxt/content'
 import type { ContentDatabaseAdapter, ContentProvide } from '../types/content'
-import { createCollectionDocument, generateRecordDeletion, generateRecordInsert, getCollectionInfo } from './utils/collections'
+import { createCollectionDocument, generateRecordDeletion, generateRecordInsert, getCollectionInfo, getCollectionByFilePath, generateIdFromPath } from './utils/collections'
 import { kebabCase } from 'lodash'
 import type { UseStudioHost, StudioHost, StudioUser } from 'nuxt-studio/app'
 import type { RouteLocationNormalized, Router } from 'vue-router'
+import { generateDocumentFromContent } from './utils/content'
 
 function getSidebarWidth(): number {
   let sidebarWidth = 440
@@ -91,23 +92,12 @@ export function useStudioHost(user: StudioUser): StudioHost {
     ui: {
       activateStudio: () => {
         document.body.setAttribute('data-studio-active', 'true')
-        // host.ui.expandToolbar()
-        // host.ui.updateStyles()
       },
       deactivateStudio: () => {
         document.body.removeAttribute('data-studio-active')
-        // host.ui.collapseToolbar()
         host.ui.collapseSidebar()
         host.ui.updateStyles()
       },
-      // expandToolbar: () => {
-      //   document.body.setAttribute('data-expand-toolbar', 'true')
-      //   host.ui.updateStyles()
-      // },
-      // collapseToolbar: () => {
-      //   document.body.removeAttribute('data-expand-toolbar')
-      //   host.ui.updateStyles()
-      // },
       expandSidebar: () => {
         document.body.setAttribute('data-expand-sidebar', 'true')
         host.ui.updateStyles()
@@ -142,16 +132,40 @@ export function useStudioHost(user: StudioUser): StudioHost {
         return useContentCollectionQuery(id.split('/')[0] as string).where('id', '=', id).first() as unknown as Promise<CollectionItemBase>
       },
       getFileSystemPath: (id: string) => {
-        return getCollectionInfo(id, useContentCollections()).path
+        return getCollectionInfo(id, useContentCollections()).fsPath
       },
       list: async (): Promise<CollectionItemBase[]> => {
         const collections = Object.keys(useContentCollections()).filter(c => c !== 'info')
         const contents = await Promise.all(collections.map(async (collection) => {
           return await useContentCollectionQuery(collection).all() as CollectionItemBase[]
         }))
+
         return contents.flat()
       },
+      create: async (path: string, content: string) => {
+        console.log('create draft file for', path, content)
+        const collections = useContentCollections()
+
+        console.log('collections', collections)
+        const collection = getCollectionByFilePath(path, collections)
+
+        console.log('collection', collection)
+
+        const id = generateIdFromPath(path, collection!)
+
+        console.log('id', id)
+
+        const existingDocument = await host.document.get(id)
+        if (existingDocument) {
+          throw new Error(`Cannot create document with id "${id}": document already exists.`)
+        }
+
+        const document = await generateDocumentFromContent(id, path, content)
+
+        console.log('document create', document)
+      },
       upsert: async (id: string, upsertedDocument: CollectionItemBase) => {
+        console.log('upsert', id, upsertedDocument)
         id = id.replace(/:/g, '/')
 
         const collection = getCollectionInfo(id, useContentCollections()).collection

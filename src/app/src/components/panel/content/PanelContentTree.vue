@@ -35,7 +35,7 @@ defineProps({
       </li>
       <li
         v-for="(item, index) in tree"
-        :key="`${item.path}-${index}`"
+        :key="`${item.id}-${index}`"
       >
         <ItemCard
           :item="item"

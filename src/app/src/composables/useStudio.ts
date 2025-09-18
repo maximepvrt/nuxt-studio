@@ -28,8 +28,8 @@ export const useStudio = createSharedComposable(() => {
 
   const isReady = ref(false)
   const ui = useUi(host)
-  const context = useContext(host, ui)
   const draftFiles = useDraftFiles(host, git, storage)
+  const context = useContext(host, ui, draftFiles)
   const tree = useTree(host, draftFiles)
 
   host.on.mounted(async () => {

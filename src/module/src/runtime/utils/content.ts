@@ -1,17 +1,10 @@
 // import type { ParsedContentFile } from '@nuxt/content'
-import { stringifyMarkdown } from '@nuxtjs/mdc/runtime'
-import type { MDCRoot } from '@nuxtjs/mdc'
-import { type DatabasePageItem, ContentFileExtension } from '../types'
+import { parseMarkdown } from '@nuxtjs/mdc/runtime'
+import { generateStemFromPath } from './collections'
+import type { MarkdownRoot, ParsedContentFile } from '@nuxt/content'
 import { omit } from './object'
 
-export const contentFileExtensions = [
-  ContentFileExtension.Markdown,
-  ContentFileExtension.YAML,
-  ContentFileExtension.YML,
-  ContentFileExtension.JSON,
-] as const
-
-export function removeReservedKeysFromDocument(document: DatabasePageItem) {
+export function removeReservedKeysFromDocument(document: ParsedContentFile) {
   const result = omit(document, ['id', 'stem', 'extension', '__hash__', 'path', 'body', 'meta'])
   // Default value of navigation is true, so we can safely remove it
   if (result.navigation === true) {
@@ -37,7 +30,26 @@ export function removeReservedKeysFromDocument(document: DatabasePageItem) {
   return result
 }
 
-// TODO: check difference between MDCRoot and MarkdownRoot
-export async function generateContentFromDocument(document: DatabasePageItem): Promise<string | null> {
-  return await stringifyMarkdown(document.body as MDCRoot, removeReservedKeysFromDocument(document))
+export async function generateDocumentFromContent(id: string, path: string, content: string): Promise<ParsedContentFile> {
+  const stem = generateStemFromPath(path)
+
+  const parsed = await parseMarkdown(content)
+
+  return {
+    id,
+    stem,
+    path,
+    meta: {},
+    extension: 'md',
+    seo: {
+      title: parsed.data.title,
+      description: parsed.data.description,
+    },
+    ...parsed.data,
+    excerpt: parsed.excerpt,
+    body: {
+      ...(parsed.body as MarkdownRoot),
+      toc: parsed.toc,
+    },
+  }
 }

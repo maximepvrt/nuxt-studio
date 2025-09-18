@@ -13,7 +13,7 @@ describe('buildTree', () => {
     {
       id: 'landing/index.md',
       name: 'home',
-      path: '/',
+      fsPath: '/index.md',
       type: 'file',
       routePath: '/',
       fileType: 'page',
@@ -21,13 +21,13 @@ describe('buildTree', () => {
     {
       id: 'docs/1.getting-started',
       name: 'getting-started',
-      path: '/getting-started',
+      fsPath: '/1.getting-started',
       type: 'directory',
       children: [
         {
           id: 'docs/1.getting-started/2.introduction.md',
           name: 'introduction',
-          path: '/getting-started/introduction',
+          fsPath: '/1.getting-started/2.introduction.md',
           type: 'file',
           fileType: 'page',
           routePath: '/getting-started/introduction',
@@ -35,7 +35,7 @@ describe('buildTree', () => {
         {
           id: 'docs/1.getting-started/3.installation.md',
           name: 'installation',
-          path: '/getting-started/installation',
+          fsPath: '/1.getting-started/3.installation.md',
           type: 'file',
           fileType: 'page',
           routePath: '/getting-started/installation',
@@ -52,7 +52,7 @@ describe('buildTree', () => {
   it('should build a tree from a list of database items and set file status for root file based on draft', () => {
     const draftList: DraftFileItem[] = [{
       id: dbItemsList[0].id,
-      path: dbItemsList[0].path as string,
+      fsPath: '/index.md',
       status: DraftStatus.Created,
     }]
     const tree = buildTree(dbItemsList, draftList)
@@ -66,7 +66,7 @@ describe('buildTree', () => {
   it('should build a tree from a list of database items and set file status for nestedfile and parent directory based on draft', () => {
     const draftList: DraftFileItem[] = [{
       id: dbItemsList[1].id,
-      path: dbItemsList[1].path as string,
+      fsPath: '/1.getting-started/2.introduction.md',
       status: DraftStatus.Updated,
     }]
     const tree = buildTree(dbItemsList, draftList)
@@ -89,7 +89,7 @@ describe('buildTree', () => {
   it('should build a tree from a list of database items and set file status for nestedfile and parent directory based on draft (status is always updated in directory)', () => {
     const draftList: DraftFileItem[] = [{
       id: dbItemsList[1].id,
-      path: dbItemsList[1].path as string,
+      fsPath: '/1.getting-started/2.introduction.md',
       status: DraftStatus.Created,
     }]
     const tree = buildTree(dbItemsList, draftList)

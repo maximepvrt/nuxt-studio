@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 import type { StorageValue, Storage } from 'unstorage'
-import type { DatabaseItem, DraftFileItem, StudioHost, GithubFile } from '../types'
+import type { DatabaseItem, DraftFileItem, StudioHost, GithubFile, DatabasePageItem } from '../types'
 import { DraftStatus } from '../types/draft'
 import type { useGit } from './useGit'
-import { stringifyDocument, parseContent } from '../utils/content'
+import { generateContentFromDocument } from '../utils/content'
 import { getDraftStatus } from '../utils/draft'
 
 export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, storage: Storage<StorageValue>) {
@@ -15,26 +15,20 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
     if (generateContent) {
       return {
         ...item,
-        content: await stringifyDocument(item.document!) || '',
+        content: await generateContentFromDocument(item.document! as DatabasePageItem) || '',
       }
     }
     return item
   }
 
   // Create a new draft file without exsiting document in database
-  async function create(id: string, content: string): Promise<DraftFileItem> {
-    id = id.replace(/:/g, '/')
+  async function create(path: string, content: string): Promise<DraftFileItem> {
+    // id = id.replace(/:/g, '/')
+    const document = await host.document.create(path, content)
 
-    const existingDocument = await host.document.get(id)
-    if (existingDocument) {
-      throw new Error(`Cannot create document with id "${id}": document already exists.`)
-    }
+    await host.document.upsert(document.id, document)
 
-    const document = await parseContent(content)
-
-    await host.document.upsert(id, document)
-
-    return await upsert(id, document)
+    return await upsert(document.id, document)
   }
 
   // Update and create draft file with exsiting document in database
@@ -42,14 +36,14 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
     id = id.replace(/:/g, '/')
     let item = await storage.getItem(id) as DraftFileItem
     if (!item) {
-      const path = host.document.getFileSystemPath(id)
+      const fsPath = host.document.getFileSystemPath(id)
 
-      const originalGithubFile = await git.fetchFile(path, { cached: true }) as GithubFile
+      const originalGithubFile = await git.fetchFile(fsPath, { cached: true }) as GithubFile
       const originalDatabaseItem = await host.document.get(id)
 
       item = {
         id,
-        path,
+        fsPath,
         originalDatabaseItem,
         originalGithubFile,
         status: originalGithubFile || originalDatabaseItem ? DraftStatus.Opened : DraftStatus.Created,
@@ -82,7 +76,7 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
 
   async function remove(id: string) {
     const item = await storage.getItem(id) as DraftFileItem
-    const path = host.document.getFileSystemPath(id)
+    const fsPath = host.document.getFileSystemPath(id)
 
     if (item) {
       if (item.status === DraftStatus.Deleted) return
@@ -93,7 +87,7 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
       if (item.originalDatabaseItem) {
         const deleteDraft: DraftFileItem = {
           id,
-          path: item.path,
+          fsPath: item.fsPath,
           status: DraftStatus.Deleted,
           originalDatabaseItem: item.originalDatabaseItem,
           originalGithubFile: item.originalGithubFile,
@@ -105,12 +99,12 @@ export function useDraftFiles(host: StudioHost, git: ReturnType<typeof useGit>, 
     }
     else {
       // Fetch github file before creating draft to detect non deployed changes
-      const originalGithubFile = await git.fetchFile(path, { cached: true }) as GithubFile
+      const originalGithubFile = await git.fetchFile(fsPath, { cached: true }) as GithubFile
       const originalDatabaseItem = await host.document.get(id)
 
       const deleteItem: DraftFileItem = {
         id,
-        path,
+        fsPath,
         status: DraftStatus.Deleted,
         originalDatabaseItem,
         originalGithubFile,

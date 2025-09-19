@@ -43,7 +43,6 @@ export default defineNuxtModule<ModuleOptions>({
       }
     }
 
-    console.log(nuxt.options.dev, options.devStorage )
     nuxt.options.runtimeConfig.public.contentStudio = {
       studioDevStorage: nuxt.options.dev && options.devStorage || false,
       studioDevServer: process.env.STUDIO_DEV_SERVER,

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { ensure } from './utils/ensure'
-import type { CollectionItemBase, CollectionInfo, DatabaseAdapter } from '@nuxt/content'
+import type { CollectionItemBase, DatabaseAdapter } from '@nuxt/content'
 import type { ContentDatabaseAdapter } from '../types/content'
 import { getCollectionByFilePath, generateIdFromFsPath, createCollectionDocument, generateRecordDeletion, generateRecordInsert, getCollectionInfo } from './utils/collections'
 import { kebabCase } from 'lodash'
@@ -54,17 +54,16 @@ function getHostStyles(): Record<string, Record<string, string>> & { css?: strin
 
 export function useStudioHost(user: StudioUser): StudioHost {
   const isMounted = ref(false)
+  let localDatabaseAdapter: ContentDatabaseAdapter | null = null
 
   function useNuxtApp() {
     return window.useNuxtApp!()
   }
 
-  function useContentDatabaseAdapter(collection: string): DatabaseAdapter {
-    return (useNuxtApp().$contentLocalDatabase as ContentDatabaseAdapter)(collection)
-  }
-
   function useContent() {
+    const $content = useNuxtApp().$content as { loadLocalDatabase: () => ContentDatabaseAdapter } || {}
     return {
+      ...$content,
       queryCollection,
       queryCollectionItemSurroundings,
       queryCollectionNavigation,
@@ -73,7 +72,11 @@ export function useStudioHost(user: StudioUser): StudioHost {
     }
   }
 
-  function useContentCollections(): Record<string, CollectionInfo> {
+  function useContentDatabaseAdapter(collection: string): DatabaseAdapter {
+    return localDatabaseAdapter!(collection)
+  }
+
+  function useContentCollections() {
     return useContent().collections
   }
 
@@ -210,12 +213,15 @@ export function useStudioHost(user: StudioUser): StudioHost {
 
   ;(async () => {
     host.ui.activateStudio()
-    // Trigger dummy query to make sure content database is loaded on the client
-    // TODO: browse collections and call one of them
+    // TODO: ensure logic is enough and all collections are registerded
     ensure(() => useContent().queryCollection !== void 0, 500)
-      .then(() => useContentCollectionQuery('docs').first())
-      .then(() => ensure(() => useNuxtApp().$contentLocalDatabase !== void 0))
-      .then(() => { isMounted.value = true })
+      // .then(() => useContentCollectionQuery("docs").first())
+      .then(() => ensure(() => useContent().loadLocalDatabase !== void 0))
+      .then(() => useContent().loadLocalDatabase())
+      .then((_localDatabaseAdapter) => {
+        localDatabaseAdapter = _localDatabaseAdapter
+        isMounted.value = true
+      })
   })()
 
   return host

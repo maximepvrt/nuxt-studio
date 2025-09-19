@@ -23,12 +23,12 @@ export default defineConfig({
         },
         footer: {
           slots: {
-            container: 'py-2 lg:py-1 px-1 sm:px-3 lg:px-3',
+            container: 'py-2 lg:py-1 px-1 sm:px-4 lg:px-4',
           },
         },
         header: {
           slots: {
-            container: 'px-1 sm:px-3 lg:px-3',
+            container: 'px-1 sm:px-4 lg:px-4',
           },
         },
         pageCard: {
@@ -106,9 +106,6 @@ export default defineConfig({
       // the proper extensions will be added
       fileName: 'index',
     },
-    rollupOptions: {
-      external: ['shiki', '@nuxtjs/mdc'],
-    },
-    sourcemap: true,
+    sourcemap: false,
   },
 })

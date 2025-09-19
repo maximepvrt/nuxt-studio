@@ -49,7 +49,6 @@ export const useTree = createSharedComposable((host: StudioHost, draftFiles: Ret
   }
 
   async function selectItemById(id: string) {
-    console.log('tree.value', tree.value)
     const treeItem = findItemFromId(tree.value, id)
     if (treeItem) {
       selectItem(treeItem)

@@ -3,7 +3,7 @@ import { onMounted, ref, shallowRef, watch } from 'vue'
 import type { DatabasePageItem, DraftFileItem } from '../../../../types'
 import type { PropType } from 'vue'
 import { setupMonaco, type Editor } from '../../../../utils/monaco'
-import { generateContentFromDocument, parseContent, pickReservedKeysFromDocument } from '../../../../utils/content'
+import { generateContentFromDocument, generateDocumentFromContent, pickReservedKeysFromDocument } from '../../../../utils/content'
 
 const props = defineProps({
   draftItem: {
@@ -51,7 +51,7 @@ onMounted(async () => {
 
     content.value = newContent
 
-    parseContent(document.value!.id, content.value).then((doc) => {
+    generateDocumentFromContent(document.value!.id, content.value).then((doc) => {
       document.value = {
         ...pickReservedKeysFromDocument(document.value!),
         ...doc

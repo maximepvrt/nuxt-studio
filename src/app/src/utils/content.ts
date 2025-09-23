@@ -64,28 +64,28 @@ export function removeReservedKeysFromDocument(document: DatabaseItem) {
   return result
 }
 
-// MARK: - Parse Content
+// MARK: - Generate Document - Parse Content
 
-export async function parseContent(id: string, content: string): Promise<DatabaseItem | null> {
+export async function generateDocumentFromContent(id: string, content: string): Promise<DatabaseItem | null> {
   const [_id, _hash] = id.split('#')
   const extension = _id.split('.').pop()
   
   if (extension === ContentFileExtension.Markdown) {
-    return await parseMarkdownContent(id, content)
+    return await generateDocumentFromMarkdownContent(id, content)
   }
 
   if (extension === ContentFileExtension.YAML || extension === ContentFileExtension.YML) {
-    return await parseYAMLContent(id, content)
+    return await generateDocumentFromYAMLContent(id, content)
   }
 
   if (extension === ContentFileExtension.JSON) {
-    return await parseJSONContent(id, content)
+    return await generateDocumentFromJSONContent(id, content)
   }
 
   return null
 }
   
-export async function parseYAMLContent(id: string, content: string): Promise<DatabaseItem | null> {
+export async function generateDocumentFromYAMLContent(id: string, content: string): Promise<DatabaseItem | null> {
   const { data } = parseFrontMatter(`---\n${content}\n---`)
 
   // Keep array contents under `body` key
@@ -103,7 +103,7 @@ export async function parseYAMLContent(id: string, content: string): Promise<Dat
   } as unknown as DatabaseItem
 }
 
-export async function parseJSONContent(id: string, content: string): Promise<DatabaseItem | null> {
+export async function generateDocumentFromJSONContent(id: string, content: string): Promise<DatabaseItem | null> {
   let parsed: Record<string, unknown> = destr(content)
 
   // Keep array contents under `body` key
@@ -122,7 +122,7 @@ export async function parseJSONContent(id: string, content: string): Promise<Dat
   } as unknown as DatabaseItem
 }
 
-export async function parseMarkdownContent(id: string, content: string): Promise<DatabaseItem | null> {
+export async function generateDocumentFromMarkdownContent(id: string, content: string): Promise<DatabaseItem | null> {
   const document = await parseMarkdown(content)
   
   return {

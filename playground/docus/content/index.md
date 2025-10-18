@@ -8,7 +8,7 @@ seo:
 
 ::u-page-hero
 #title
-Write beautiful docs with uuuuup
+Write beautiful docs with this power app
 
 #description
 Ship fast, flexible, and SEO-optimized documentation with beautiful design out of the box.

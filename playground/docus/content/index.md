@@ -8,7 +8,7 @@ seo:
 
 ::u-page-hero
 #title
-Write ugly docs with Joe
+Write beautiful you with Markdown
 
 #description
 Ship fast, flexible, and SEO-optimized documentation with beautiful design out of the box.
@@ -18,19 +18,22 @@ Docus brings the best of the Nuxt ecosystem into one CLI.
 #links
   :::u-button
   ---
-  "---ojopj Get started ::": null
   color: neutral
   size: xl
   to: /getting-started/installation
   trailing-icon: i-lucide-arrow-right
   ---
+  Get started
+  :::
+
+  :::u-button
+  ---
   color: neutral
   icon: simple-icons-github
   size: xl
-  to: <https://github.com/nuxt-ui-pro/docus>
+  to: https://github.com/nuxt-ui-pro/docus
   variant: outline
-  ----------------
-  
+  ---
   Star on GitHub
   :::
 ::
@@ -44,7 +47,7 @@ Shipped with many features
   ---
   icon: i-simple-icons-nuxt
   target: _blank
-  to: https://nuxt.compojpoj
+  to: https://nuxt.com
   ---
   #title
   Built with [Nuxt 4]{.text-primary}
@@ -72,11 +75,11 @@ Shipped with many features
   target: _blank
   to: https://content.nuxt.com
   ---
-  #titlepojpoj
+  #title
   Enhanced Markdown syntax by [Nuxt Content]{.text-primary}
   
   #description
-  The only thing you need to take care aboutopjopj is writing your content. Write your pages in Markdown and extend with MDC syntax to embed Nuxt UI or custom Vue components. Structure, routing, and rendering are handled for you.
+  The only thing you need to take care about is writing your content. Write your pages in Markdown and extend with MDC syntax to embed Nuxt UI or custom Vue components. Structure, routing, and rendering are handled for you.
   :::
 
   :::u-page-feature

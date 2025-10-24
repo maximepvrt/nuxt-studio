@@ -6,11 +6,45 @@ seo:
     Powered by Nuxt UI Pro.
 ---
 
-conflit
+::u-page-hero
+#title
+Write beautiful docs with Markdown ojopjopj
+
+#description
+Ship fast, flexible, and SEO-optimized documentation with beautiful design out of the box.
+
+Docus brings the best of the Nuxt ecosystem into one CLI.
+
+#links
+  :::u-button
+  ---
+  "---ojopj Get started ::": null
+  color: neutral
+  size: xl
+  to: /getting-started/installation
+  trailing-icon: i-lucide-arrow-right
+  ---
+  color: neutral
+  icon: simple-icons-github
+  size: xl
+  to: <https://github.com/nuxt-ui-pro/docus>
+  variant: outline
+  ----------------
+  
+  Star on GitHub
+  :::
+::
+
+::u-page-section
+#title
+Shipped with many features
+
+#features
+  :::u-page-feature
   ---
   icon: i-simple-icons-nuxt
   target: _blank
-  to: https://nuxt.com
+  to: https://nuxt.compojpoj
   ---
   #title
   Built with [Nuxt 4]{.text-primary}
@@ -38,11 +72,11 @@ conflit
   target: _blank
   to: https://content.nuxt.com
   ---
-  #title
+  #titlepojpoj
   Enhanced Markdown syntax by [Nuxt Content]{.text-primary}
   
   #description
-  The only thing you need to take care about is writing your content. Write your pages in Markdown and extend with MDC syntax to embed Nuxt UI or custom Vue components. Structure, routing, and rendering are handled for you.
+  The only thing you need to take care aboutopjopj is writing your content. Write your pages in Markdown and extend with MDC syntax to embed Nuxt UI or custom Vue components. Structure, routing, and rendering are handled for you.
   :::
 
   :::u-page-feature

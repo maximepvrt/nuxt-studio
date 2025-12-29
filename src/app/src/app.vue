@@ -4,6 +4,7 @@ import { watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStudioState } from './composables/useStudioState'
 import * as locales from '@nuxt/ui/locale'
+import { useI18n } from 'vue-i18n'
 
 const { host, ui, isReady, context } = useStudio()
 const { location } = useStudioState()

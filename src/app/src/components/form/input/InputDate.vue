@@ -2,7 +2,7 @@
 import type { FormItem } from '../../../types'
 import type { PropType } from 'vue'
 import { computed, ref } from 'vue'
-import { CalendarDate, CalendarDateTime, type DateValue } from '@internationalized/date'
+import { CalendarDate, CalendarDateTime, toCalendarDateTime, type DateValue } from '@internationalized/date'
 
 const props = defineProps({
   formItem: {
@@ -32,7 +32,7 @@ const dateValue = computed<DateValue | undefined>({
       model.value = ''
       return
     }
-    model.value = value.toString()
+    model.value = props.formItem.type === 'date' ? value.toString() : toCalendarDateTime(value).toString()
   },
 })
 </script>
@@ -46,10 +46,7 @@ const dateValue = computed<DateValue | undefined>({
     :granularity="$props.formItem?.type === 'date' ? 'day' : 'minute'"
   >
     <template #trailing>
-      <UPopover
-        v-if="$props.formItem?.type === 'date'"
-        :reference="inputDate?.inputsRef?.[3]?.$el"
-      >
+      <UPopover :reference="inputDate?.inputsRef?.[3]?.$el">
         <UButton
           color="neutral"
           variant="link"

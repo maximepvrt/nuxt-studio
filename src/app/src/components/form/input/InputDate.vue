@@ -44,6 +44,7 @@ const dateValue = computed<DateValue | undefined>({
     v-model="dateValue"
     size="xs"
     class="w-full"
+    :granularity="$props.formItem?.type === 'date' ? 'day' : 'minute'"
   >
     <template #trailing>
       <UPopover :reference="inputDate?.inputsRef?.[3]?.$el">
@@ -58,6 +59,7 @@ const dateValue = computed<DateValue | undefined>({
 
         <template #content>
           <UCalendar
+            v-if="$props.formItem?.type === 'date'"
             v-model="dateValue"
             class="p-2"
           />

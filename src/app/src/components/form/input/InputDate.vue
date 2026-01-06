@@ -21,7 +21,10 @@ const dateValue = computed<DateValue | undefined>({
     try {
       const date = new Date(model.value)
       if (Number.isNaN(date.getTime())) return undefined
-      return props.formItem.type === 'date' ? new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()) : new CalendarDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds())
+      if (props.formItem.type === 'datetime') {
+        return new CalendarDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds())
+      }
+      return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
     }
     catch {
       return undefined
